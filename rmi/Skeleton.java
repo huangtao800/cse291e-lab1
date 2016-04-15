@@ -29,7 +29,7 @@ public class Skeleton<T>
 {
     private Class<T> c;
     private T server;
-
+    protected InetSocketAddress address;
     private Thread listenThread = null;
 
     /** Creates a <code>Skeleton</code> with no initial server address. The
