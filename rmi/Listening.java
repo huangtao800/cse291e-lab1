@@ -22,9 +22,11 @@ public class Listening<T> implements Runnable{
             while (true){
                 Socket clientSocket = this.serverSocket.accept();
                 // to do
-
+                ClientHandler<T> clientHandler = new ClientHandler<>(server, clientSocket);
+                Thread t = new Thread(clientHandler);
+                t.start();
             }
-        }catch (Exception ex){
+        }catch (IOException ex){
             
         }
 

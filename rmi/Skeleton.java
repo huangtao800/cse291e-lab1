@@ -155,6 +155,8 @@ public class Skeleton<T>
 
         try {
             Listening<T> listening = new Listening<T>(server);
+            listenThread = new Thread(listening);
+            listenThread.start();
         } catch (IOException e) {
             throw new RMIException("Cannot create Socket");
         }
