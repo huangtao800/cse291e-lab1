@@ -30,7 +30,7 @@ public class Skeleton<T>
     private Class<T> c;
     private T server;
 
-    private Listening<T> listening;
+    private Thread listenThread = null;
 
     /** Creates a <code>Skeleton</code> with no initial server address. The
         address will be determined by the system when <code>start</code> is
@@ -149,8 +149,12 @@ public class Skeleton<T>
      */
     public synchronized void start() throws RMIException
     {
+        if(listenThread!=null && listenThread.isAlive()){
+            throw new RMIException("Already started");
+        }
+
         try {
-            this.listening = new Listening<T>(server);
+            Listening<T> listening = new Listening<T>(server);
         } catch (IOException e) {
             throw new RMIException("Cannot create Socket");
         }
