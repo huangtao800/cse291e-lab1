@@ -17,7 +17,7 @@ public class MyInvocationHandler extends Stub implements InvocationHandler {
     }
 
     public MyInvocationHandler(Skeleton skeleton) throws IOException {
-        this.socket = new Socket(skeleton.address.getAddress(), 5000);
+        this.socket = new Socket(skeleton.iAddress.getAddress(), 5000);
     }
 
     public MyInvocationHandler(String hostName) throws IOException {
