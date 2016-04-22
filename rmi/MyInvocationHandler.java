@@ -58,7 +58,18 @@ public class MyInvocationHandler extends Stub implements InvocationHandler {
 
     public Object invokeRemoteMethod(Object proxy, Method method, Object[] args) throws Exception {
         // I think this proxy object is useless, since it should call RMI    -- Tao
+        ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
         String methodName = method.getName();
+        /*try {
+            Class[] types = method.getParameterTypes();
+
+            for(int i = 0; i < types.length; i++) {
+                marshallObject(types[i], args[i], oos);
+            }
+        } catch (IOException ie) {
+            System.err.println("Error in marshalling arguments");
+            ie.printStackTrace();
+        }*/
 
         Serializable[] argList = new Serializable[args.length+1];
         argList[0] = methodName;
@@ -71,17 +82,30 @@ public class MyInvocationHandler extends Stub implements InvocationHandler {
             throw new NotSerializableException("Argument(s) Not Serializable");
         }
 
-        ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
         oos.writeObject(argList);
         oos.flush();
 
-        // get result
-        ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+        //GET THE RESULT OF THE REMOTE METHOD EXECUTION
         Object ret = null;
+        try {
+            Class returnType = method.getReturnType();
+            //the return type of the method is void
+            if(returnType == void.class) {
+                return null;
+            }
 
-        // wait for reply
-        while((ret=ois.readObject())==null){}
+            // get result
+            ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+            // wait for reply
+            while((ret=ois.readObject())==null){
 
+            }
+            ret = unmarshallValue(returnType, ois);
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         return ret;
     }
@@ -105,7 +129,55 @@ public class MyInvocationHandler extends Stub implements InvocationHandler {
         return "Proxy[" + iface + "," + this + "]" + ", " + address;
     }
 
-    private void marshallObject(Object[] args) {
+    private void marshallValue(Class<?> clazz, Object arg, ObjectOutputStream oos) throws IOException {
+        if(clazz.isPrimitive()) {
+            if(clazz == Integer.TYPE) {
+                oos.writeInt(((Integer)arg).intValue());
+            } else if(clazz == Boolean.TYPE) {
+                oos.writeBoolean(((Boolean)arg).booleanValue());
+            } else if(clazz == Byte.TYPE) {
+                oos.writeByte(((Byte)arg).byteValue());
+            } else if(clazz == Character.TYPE) {
+                oos.writeByte(((Character)arg).charValue());
+            } else if(clazz == Short.TYPE) {
+                oos.writeShort(((Short)arg).shortValue());
+            } else if(clazz == Long.TYPE) {
+                oos.writeLong(((Long)arg).longValue());
+            } else if(clazz == Float.TYPE) {
+                oos.writeFloat(((Float)arg).floatValue());
+            } else if(clazz == Double.TYPE) {
+                oos.writeDouble(((Double)arg).doubleValue());
+            } else {
+                throw new Error("Unrecognized primitive type " + clazz);
+            }
+        } else {
+            oos.writeObject(arg);
+        }
+    }
 
+    private Object unmarshallValue(Class<?> clazz, ObjectInputStream ois) throws IOException, ClassNotFoundException {
+        if(clazz.isPrimitive()) {
+            if(clazz == Integer.TYPE) {
+                return Integer.valueOf(ois.readInt());
+            } else if(clazz == Boolean.TYPE) {
+                return Boolean.valueOf(ois.readBoolean());
+            } else if(clazz == Byte.TYPE) {
+                return Byte.valueOf(ois.readByte());
+            } else if(clazz == Character.TYPE) {
+                return Character.valueOf(ois.readChar());
+            } else if(clazz == Short.TYPE) {
+                return Short.valueOf(ois.readShort());
+            } else if(clazz == Long.TYPE) {
+                return Long.valueOf(ois.readLong());
+            } else if(clazz == Float.TYPE) {
+                return Float.valueOf(ois.readFloat());
+            } else if(clazz == Double.TYPE) {
+                return Double.valueOf(ois.readDouble());
+            } else {
+                throw new Error("Unrecognized primitive type " + clazz);
+            }
+        } else {
+            return ois.readObject();
+        }
     }
 }
