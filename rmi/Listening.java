@@ -1,6 +1,7 @@
 package rmi;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -10,6 +11,8 @@ import java.net.Socket;
 public class Listening<T> implements Runnable{
     private ServerSocket serverSocket;
     private T server;
+
+    private InetAddress inetAddress;
 
 
     public Listening(T server) throws IOException {

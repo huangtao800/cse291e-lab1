@@ -53,7 +53,12 @@ public class Skeleton<T>
      */
     public Skeleton(Class<T> c, T server)
     {
-        throw new UnsupportedOperationException("not implemented");
+        if(c == null || server == null) {
+            throw new NullPointerException();
+        }
+        this.c = c;
+        this.server = server;
+        //throw new UnsupportedOperationException("not implemented");
     }
 
     /** Creates a <code>Skeleton</code> with the given initial server address.
@@ -76,9 +81,17 @@ public class Skeleton<T>
      */
     public Skeleton(Class<T> c, T server, InetSocketAddress address)
     {
+        if(c == null || server == null) {
+            throw new NullPointerException();
+        }
+        /*if(address == null) {
+            address = new InetSocketAddress(5000);
+        }*/
         this.c = c;
         this.server = server;
-        throw new UnsupportedOperationException("not implemented");
+        this.address = address;
+
+        //throw new UnsupportedOperationException("not implemented");
     }
 
     /** Called when the listening thread exits.

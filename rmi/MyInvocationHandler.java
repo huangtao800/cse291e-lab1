@@ -61,10 +61,11 @@ public class MyInvocationHandler extends Stub implements InvocationHandler {
         ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
         String methodName = method.getName();
         /*try {
+            oos.writeObject(methodName);
             Class[] types = method.getParameterTypes();
 
             for(int i = 0; i < types.length; i++) {
-                marshallObject(types[i], args[i], oos);
+                marshallValue(types[i], args[i], oos);
             }
         } catch (IOException ie) {
             System.err.println("Error in marshalling arguments");
