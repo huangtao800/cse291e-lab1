@@ -1,5 +1,8 @@
 package rmi;
 
+import java.io.IOException;
+import java.lang.reflect.*;
+import java.lang.reflect.Proxy;
 import java.net.*;
 
 /** RMI stub factory.
@@ -104,8 +107,11 @@ public abstract class Stub
                       <code>RMIException</code>, or if an object implementing
                       this interface cannot be dynamically created.
      */
-    public static <T> T create(Class<T> c, InetSocketAddress address)
-    {
-        throw new UnsupportedOperationException("not implemented");
+    public static <T> T create(Class<T> c, InetSocketAddress address) throws IOException {
+        if(c==null || address==null)    throw new NullPointerException();
+
+        T ret = (T) Proxy.newProxyInstance(c.getClassLoader(), new Class<?>[] { c }, new MyInvocationHandler(address));
+        return ret;
+//        throw new UnsupportedOperationException("not implemented");
     }
 }

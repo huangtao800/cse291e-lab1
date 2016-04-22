@@ -22,6 +22,9 @@ public class MyInvocationHandler implements InvocationHandler {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        // I think this proxy object is useless, since it should call RMI    -- Tao
+        String methodName = method.getName();
+
         return null;
     }
 }
