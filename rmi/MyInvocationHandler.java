@@ -37,7 +37,16 @@ public class MyInvocationHandler implements InvocationHandler {
 
         ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
         oos.writeObject(argList);
+        oos.flush();
 
-        return null;
+        // get result
+        ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+        Object ret = null;
+
+        // wait for reply
+        while((ret=ois.readObject())==null){}
+
+
+        return ret;
     }
 }
