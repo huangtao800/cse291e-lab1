@@ -174,6 +174,6 @@ public class Skeleton<T>
      */
     public synchronized void stop()
     {
-        throw new UnsupportedOperationException("not implemented");
+        listenThread.interrupt();
     }
 }
