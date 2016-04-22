@@ -50,12 +50,16 @@ public abstract class Stub implements Serializable
                       this interface cannot be dynamically created.
      */
     public static <T> T create(Class<T> c, Skeleton<T> skeleton)
-            throws IOException
     {
         if(c == null || skeleton == null) {
             throw new NullPointerException();
         }
-        T ret = (T) Proxy.newProxyInstance(c.getClassLoader(), new Class<?>[]{c}, new MyInvocationHandler(skeleton));
+        T ret = null;
+        try {
+            ret = (T) Proxy.newProxyInstance(c.getClassLoader(), new Class<?>[]{c}, new MyInvocationHandler(skeleton));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return ret;
         //throw new UnsupportedOperationException("not implemented");
     }
@@ -91,14 +95,17 @@ public abstract class Stub implements Serializable
                       this interface cannot be dynamically created.
      */
     public static <T> T create(Class<T> c, Skeleton<T> skeleton,
-                               String hostname) throws IOException {
+                               String hostname){
         if(c == null || skeleton == null) {
             throw new NullPointerException();
         }
-        if(hostname == null || hostname.equals("")) {
-            create(c, skeleton);
+
+        T ret = null;
+        try {
+            ret = (T) Proxy.newProxyInstance(c.getClassLoader(), new Class<?>[]{c}, new MyInvocationHandler(hostname));
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        T ret = (T) Proxy.newProxyInstance(c.getClassLoader(), new Class<?>[]{c}, new MyInvocationHandler(hostname));
         return ret;
     }
 
@@ -119,10 +126,15 @@ public abstract class Stub implements Serializable
                       <code>RMIException</code>, or if an object implementing
                       this interface cannot be dynamically created.
      */
-    public static <T> T create(Class<T> c, InetSocketAddress address) throws IOException {
+    public static <T> T create(Class<T> c, InetSocketAddress address){
         if(c==null || address==null)    throw new NullPointerException();
 
-        T ret = (T) Proxy.newProxyInstance(c.getClassLoader(), new Class<?>[] { c }, new MyInvocationHandler(address));
+        T ret = null;
+        try {
+            ret = (T) Proxy.newProxyInstance(c.getClassLoader(), new Class<?>[] { c }, new MyInvocationHandler(address));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return ret;
 //        throw new UnsupportedOperationException("not implemented");
     }

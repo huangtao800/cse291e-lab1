@@ -29,7 +29,7 @@ public class Skeleton<T>
 {
     private Class<T> c;
     private T server;
-    protected InetSocketAddress address;
+    protected InetSocketAddress iAddress;
     private Thread listenThread = null;
 
     /** Creates a <code>Skeleton</code> with no initial server address. The
@@ -89,7 +89,7 @@ public class Skeleton<T>
         }*/
         this.c = c;
         this.server = server;
-        this.address = address;
+        this.iAddress = address;
 
         //throw new UnsupportedOperationException("not implemented");
     }
