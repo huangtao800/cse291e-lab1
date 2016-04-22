@@ -1,8 +1,6 @@
 package rmi;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.Socket;
 
 /**
@@ -21,10 +19,17 @@ public class ClientHandler<T> implements Runnable {
 
     public void run(){
         try {
-            InputStreamReader isReader = new InputStreamReader(clientSocket.getInputStream());
-            BufferedReader reader = new BufferedReader(isReader);
-            while(reader.readLine()!=null){
+            ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream());
 
+            ObjectInputStream ois = new ObjectInputStream(clientSocket.getInputStream());
+            Object request = null;
+            try {
+                while((request=ois.readObject())!=null){
+
+                }
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+                // return class not found
             }
         } catch (IOException e) {
             e.printStackTrace();
