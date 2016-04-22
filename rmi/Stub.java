@@ -1,6 +1,7 @@
 package rmi;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.lang.reflect.*;
 import java.lang.reflect.Proxy;
 import java.net.*;
@@ -18,7 +19,7 @@ import java.net.*;
     same interface and carry the same remote server address - and would
     therefore connect to the same skeleton. Stubs are serializable.
  */
-public abstract class Stub
+public abstract class Stub implements Serializable
 {
     /** Creates a stub, given a skeleton with an assigned adress.
 
@@ -49,9 +50,14 @@ public abstract class Stub
                       this interface cannot be dynamically created.
      */
     public static <T> T create(Class<T> c, Skeleton<T> skeleton)
-        throws UnknownHostException
+            throws IOException
     {
-        throw new UnsupportedOperationException("not implemented");
+        if(c == null || skeleton == null) {
+            throw new NullPointerException();
+        }
+        T ret = (T) Proxy.newProxyInstance(c.getClassLoader(), new Class<?>[]{c}, new MyInvocationHandler(skeleton));
+        return ret;
+        //throw new UnsupportedOperationException("not implemented");
     }
 
     /** Creates a stub, given a skeleton with an assigned address and a hostname
@@ -85,9 +91,15 @@ public abstract class Stub
                       this interface cannot be dynamically created.
      */
     public static <T> T create(Class<T> c, Skeleton<T> skeleton,
-                               String hostname)
-    {
-        throw new UnsupportedOperationException("not implemented");
+                               String hostname) throws IOException {
+        if(c == null || skeleton == null) {
+            throw new NullPointerException();
+        }
+        if(hostname == null || hostname.equals("")) {
+            create(c, skeleton);
+        }
+        T ret = (T) Proxy.newProxyInstance(c.getClassLoader(), new Class<?>[]{c}, new MyInvocationHandler(hostname));
+        return ret;
     }
 
     /** Creates a stub, given the address of a remote server.
@@ -113,5 +125,20 @@ public abstract class Stub
         T ret = (T) Proxy.newProxyInstance(c.getClassLoader(), new Class<?>[] { c }, new MyInvocationHandler(address));
         return ret;
 //        throw new UnsupportedOperationException("not implemented");
+    }
+
+    @Override
+    public String toString() {
+        return super.toString();
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj.equals(this);
     }
 }
