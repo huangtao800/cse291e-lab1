@@ -20,8 +20,8 @@ public class MyInvocationHandler extends Stub implements InvocationHandler {
         this.socket = new Socket(skeleton.iAddress.getAddress(), skeleton.iAddress.getPort());
     }
 
-    public MyInvocationHandler(String hostName) throws IOException {
-        this.socket = new Socket(hostName, 8080);
+    public MyInvocationHandler(String hostName, int port) throws IOException {
+        this.socket = new Socket(hostName, port);
     }
 
     @Override

@@ -21,6 +21,25 @@ import java.net.*;
  */
 public abstract class Stub implements Serializable
 {
+
+
+    private static String checkRMIException(Method[] methods){
+        String ret = "";
+        for(Method m : methods){
+            Class<?>[] exceptions = m.getExceptionTypes();
+            boolean containRMIExcep = false;
+            for(Class ex : exceptions){
+                if(ex == RMIException.class){
+                    containRMIExcep = true;
+                    break;
+                }
+            }
+            if(!containRMIExcep)    ret = m.getName();
+            break;
+        }
+        return ret;
+    }
+
     /** Creates a stub, given a skeleton with an assigned adress.
 
         <p>
@@ -54,14 +73,23 @@ public abstract class Stub implements Serializable
         if(c == null || skeleton == null) {
             throw new NullPointerException();
         }
+        if(skeleton.iAddress==null && (skeleton.listenThread==null || skeleton.listenThread.isInterrupted())){
+            throw new IllegalStateException("Skeleton has not been started and has not been started.");
+        }
+        Method[] methods = c.getMethods();
+        String noRmiMethod = checkRMIException(methods);
+        if(!noRmiMethod.equals("")){
+            throw new Error(noRmiMethod + " does not throw RMIException");
+        }
+
+
         T ret = null;
         try {
             ret = (T) Proxy.newProxyInstance(c.getClassLoader(), new Class<?>[]{c}, new MyInvocationHandler(skeleton));
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            throw new Error("Cannot create object");
         }
         return ret;
-        //throw new UnsupportedOperationException("not implemented");
     }
 
     /** Creates a stub, given a skeleton with an assigned address and a hostname
@@ -99,12 +127,22 @@ public abstract class Stub implements Serializable
         if(c == null || skeleton == null) {
             throw new NullPointerException();
         }
+        Method[] methods = c.getMethods();
+        String noRmiMethod = checkRMIException(methods);
+        if(!noRmiMethod.equals("")){
+            throw new Error(noRmiMethod + " does not throw RMIException");
+        }
+        if(skeleton.iAddress==null){
+            throw new Error("The skeleton has not been assigned a port");
+        }
 
         T ret = null;
         try {
-            ret = (T) Proxy.newProxyInstance(c.getClassLoader(), new Class<?>[]{c}, new MyInvocationHandler(hostname));
-        } catch (IOException e) {
+            ret = (T) Proxy.newProxyInstance(c.getClassLoader(), new Class<?>[]{c},
+                    new MyInvocationHandler(hostname, skeleton.iAddress.getPort()));
+        } catch (Exception e) {
             e.printStackTrace();
+            throw new Error("Cannot create object");
         }
         return ret;
     }
@@ -128,15 +166,20 @@ public abstract class Stub implements Serializable
      */
     public static <T> T create(Class<T> c, InetSocketAddress address){
         if(c==null || address==null)    throw new NullPointerException();
+        Method[] methods = c.getMethods();
+        String noRmiMethod = checkRMIException(methods);
+        if(!noRmiMethod.equals("")){
+            throw new Error(noRmiMethod + " does not throw RMIException");
+        }
 
         T ret = null;
         try {
             ret = (T) Proxy.newProxyInstance(c.getClassLoader(), new Class<?>[] { c }, new MyInvocationHandler(address));
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
+            throw new Error("Cannot create object");
         }
         return ret;
-//        throw new UnsupportedOperationException("not implemented");
     }
 
     @Override
