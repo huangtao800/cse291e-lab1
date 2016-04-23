@@ -85,9 +85,7 @@ public class Skeleton<T>
         if(c == null || server == null) {
             throw new NullPointerException();
         }
-        /*if(address == null) {
-            address = new InetSocketAddress(5000);
-        }*/
+
         this.c = c;
         this.server = server;
         this.iAddress = address;
@@ -168,13 +166,11 @@ public class Skeleton<T>
         }
 
         try {
-            if(serverSocket == null) {
-                if(iAddress == null) {
-                    serverSocket = new ServerSocket(5000);
-                } else {
-                    serverSocket = new ServerSocket(iAddress.getPort(), 50, iAddress.getAddress());
-                }
+            if(iAddress == null){
+                InetAddress host = InetAddress.getLocalHost();
+                iAddress = new InetSocketAddress(host, 8081);
             }
+            serverSocket = new ServerSocket(iAddress.getPort(), 50, iAddress.getAddress());
 
             Listening<T> listening = new Listening<T>(server, serverSocket);
             listenThread = new Thread(listening);
@@ -194,8 +190,12 @@ public class Skeleton<T>
         <code>stopped</code> is called at that point. The server may then be
         restarted.
      */
-    public synchronized void stop()
-    {
+    public synchronized void stop() {
         listenThread.interrupt();
+        try {
+            serverSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

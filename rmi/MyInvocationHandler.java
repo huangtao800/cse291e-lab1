@@ -17,7 +17,7 @@ public class MyInvocationHandler extends Stub implements InvocationHandler {
     }
 
     public MyInvocationHandler(Skeleton skeleton) throws IOException {
-        this.socket = new Socket(skeleton.iAddress.getAddress(), 8080);
+        this.socket = new Socket(skeleton.iAddress.getAddress(), skeleton.iAddress.getPort());
     }
 
     public MyInvocationHandler(String hostName) throws IOException {
@@ -80,21 +80,12 @@ public class MyInvocationHandler extends Stub implements InvocationHandler {
     public Object invokeRemoteMethod(Object proxy, Method method, Object[] args) throws Exception {
         // I think this proxy object is useless, since it should call RMI    -- Tao
         ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-        /*try {
-            oos.writeObject(methodName);
-            Class[] types = method.getParameterTypes();
 
-            for(int i = 0; i < types.length; i++) {
-                marshallValue(types[i], args[i], oos);
-            }
-        } catch (IOException ie) {
-            System.err.println("Error in marshalling arguments");
-            ie.printStackTrace();
-        }*/
         Serializable[] request = marshall(method, args);
 
         oos.writeObject(request);
         oos.flush();
+        System.out.println("Request sent");
 
         //GET THE RESULT OF THE REMOTE METHOD EXECUTION
         Object ret = null;
