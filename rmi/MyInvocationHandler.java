@@ -3,6 +3,7 @@ package rmi;
 import java.io.*;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
@@ -11,6 +12,7 @@ import java.net.Socket;
  */
 public class MyInvocationHandler extends Stub implements InvocationHandler {
     private Socket socket;
+    private Skeleton skeleton = null;
 
     public MyInvocationHandler(InetSocketAddress address) throws IOException {
         this.socket = new Socket(address.getAddress(), address.getPort());
@@ -18,6 +20,7 @@ public class MyInvocationHandler extends Stub implements InvocationHandler {
 
     public MyInvocationHandler(Skeleton skeleton) throws IOException {
         this.socket = new Socket(skeleton.iAddress.getAddress(), skeleton.iAddress.getPort());
+        this.skeleton = skeleton;
     }
 
     public MyInvocationHandler(String hostName, int port) throws IOException {
@@ -44,10 +47,18 @@ public class MyInvocationHandler extends Stub implements InvocationHandler {
     public Object invokeObjectMethod(Object proxy, Method method, Object[] args) {
         String name = method.getName();
         if(name.equals("hashCode")) {
-            return hashCode();
+            if(proxy == null)   return proxy.hashCode();
+            MyInvocationHandler handler = (MyInvocationHandler) Proxy.getInvocationHandler(proxy);
+            if(handler.skeleton==null)  return proxy.getClass().hashCode();
+            return proxy.getClass().hashCode() + handler.skeleton.hashCode();
         } else if(name.equals("equals")) {
             Object obj = args[0];
-            return proxy == obj;
+            if(proxy==null && obj==null)    return true;
+            if(obj==null)   return false;
+            MyInvocationHandler proxyHandler = (MyInvocationHandler) Proxy.getInvocationHandler(proxy);
+            MyInvocationHandler objHandler = (MyInvocationHandler) Proxy.getInvocationHandler(obj);
+            return proxy.getClass().equals(obj.getClass())
+                    && proxyHandler.skeleton.equals(objHandler.skeleton);
         } else if(name.equals("toString")) {
             return proxyToString(proxy);
         } else {
