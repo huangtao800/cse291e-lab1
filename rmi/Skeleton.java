@@ -168,11 +168,14 @@ public class Skeleton<T>
         }
 
         try {
-            if(iAddress == null) {
-                serverSocket = new ServerSocket(5000);
-            } else {
-                serverSocket = new ServerSocket(iAddress.getPort(), 50, iAddress.getAddress());
+            if(serverSocket == null) {
+                if(iAddress == null) {
+                    serverSocket = new ServerSocket(5000);
+                } else {
+                    serverSocket = new ServerSocket(iAddress.getPort(), 50, iAddress.getAddress());
+                }
             }
+
             Listening<T> listening = new Listening<T>(server, serverSocket);
             listenThread = new Thread(listening);
             listenThread.start();
