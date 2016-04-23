@@ -106,7 +106,7 @@ public abstract class Stub implements Serializable
      */
     public static <T> T create(Class<T> c, Skeleton<T> skeleton,
                                String hostname){
-        if(c == null || skeleton == null) {
+        if(c == null || skeleton == null || hostname==null) {
             throw new NullPointerException();
         }
         Method[] methods = c.getMethods();

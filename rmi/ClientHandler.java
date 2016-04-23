@@ -61,51 +61,9 @@ public class ClientHandler<T> implements Runnable {
                 e.printStackTrace();
             }
             clientSocket.close();
-
-//            try {
-//                String methodName = (String)ois.readObject();
-//                Class clazz = serverInterface.getClass();
-//
-//                //find the method to be executed
-//                Method[] methods = clazz.getMethods();
-//                Method method = null;
-//                for(Method m : methods) {
-//                    if(m.getName().equals(methodName)) {
-//                        method = m;
-//                        break;
-//                    }
-//                }
-//
-//                Class[] types = method.getParameterTypes();
-//                Object[] params = new Object[types.length];
-//
-//                for(int i = 0; i < params.length; i++) {
-//                    unmashallValue(types[i], ois);
-//                }
-//
-//                //execute the method
-//                Object result = null;
-//                Class returnType = method.getReturnType();
-//                result = method.invoke(serverInterface, params);
-//
-//                //send the result back
-//                if(returnType != void.class) {
-//                    marshallValue(returnType, result, oos);
-//                }
-//
-//                /*while((request=ois.readObject())!=null){
-//
-//                }*/
-//            } catch (ClassNotFoundException e) {
-//                e.printStackTrace();
-//                // return class not found
-//            } catch (InvocationTargetException e) {
-//                e.printStackTrace();
-//            } catch (IllegalAccessException e) {
-//                e.printStackTrace();
-//            }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Getting Input/Output stream error");
+//            e.printStackTrace();
         }
 
     }
