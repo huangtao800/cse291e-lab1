@@ -1,6 +1,7 @@
 package rmi;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.*;
 
 /** RMI skeleton
@@ -31,6 +32,7 @@ public class Skeleton<T>
     private T server;
     protected InetSocketAddress iAddress;
     protected Thread listenThread = null;
+    private Listening<T> runnable = null;
     private ServerSocket serverSocket;
 
     /** Creates a <code>Skeleton</code> with no initial server address. The
@@ -57,6 +59,12 @@ public class Skeleton<T>
         if(c == null || server == null) {
             throw new NullPointerException();
         }
+        Method[] methods = c.getMethods();
+        String noRmiMethod = checkRMIException(methods);
+        if(!noRmiMethod.equals("")){
+            throw new Error(noRmiMethod + " does not throw RMIException");
+        }
+
         this.c = c;
         this.server = server;
         //throw new UnsupportedOperationException("not implemented");
@@ -84,6 +92,11 @@ public class Skeleton<T>
     {
         if(c == null || server == null) {
             throw new NullPointerException();
+        }
+        Method[] methods = c.getMethods();
+        String noRmiMethod = checkRMIException(methods);
+        if(!noRmiMethod.equals("")){
+            throw new Error(noRmiMethod + " does not throw RMIException");
         }
 
         this.c = c;
@@ -170,9 +183,10 @@ public class Skeleton<T>
             }
             serverSocket = new ServerSocket(iAddress.getPort(), 50, iAddress.getAddress());
 
-            Listening<T> listening = new Listening<T>(server, serverSocket);
-            listenThread = new Thread(listening);
+            runnable = new Listening<T>(server, serverSocket);
+            listenThread = new Thread(runnable);
             listenThread.start();
+
         } catch (IOException e) {
             throw new RMIException("Cannot create Socket");
         }
@@ -189,11 +203,35 @@ public class Skeleton<T>
         restarted.
      */
     public synchronized void stop() {
-        listenThread.interrupt();
+        if(runnable!=null)  runnable.started = false;
         try {
-            serverSocket.close();
+            if(serverSocket!=null) serverSocket.close();
+            listenThread.join();
         } catch (IOException e) {
             e.printStackTrace();
+            this.stopped(e);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            this.stopped(e);
         }
+
+        this.stopped(null);
+    }
+
+    private static String checkRMIException(Method[] methods){
+        String ret = "";
+        for(Method m : methods){
+            Class<?>[] exceptions = m.getExceptionTypes();
+            boolean containRMIExcep = false;
+            for(Class ex : exceptions){
+                if(ex == RMIException.class){
+                    containRMIExcep = true;
+                    break;
+                }
+            }
+            if(!containRMIExcep)    ret = m.getName();
+            break;
+        }
+        return ret;
     }
 }

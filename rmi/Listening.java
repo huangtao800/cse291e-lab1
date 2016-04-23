@@ -11,6 +11,7 @@ import java.net.Socket;
 public class Listening<T> implements Runnable{
     private ServerSocket serverSocket;
     private T server;
+    protected boolean started = true;
 
 
     public Listening(T server, ServerSocket serverSocket) throws IOException {
@@ -19,17 +20,25 @@ public class Listening<T> implements Runnable{
     }
 
     public void run(){
+        Socket clientSocket = null;
         try{
-            while (true){
-                Socket clientSocket = this.serverSocket.accept();
+            while (started){
+                clientSocket = this.serverSocket.accept();
                 // to do
                 ClientHandler<T> clientHandler = new ClientHandler<>(server, clientSocket);
                 Thread t = new Thread(clientHandler);
                 t.start();
             }
         }catch (IOException ex){
-
+            System.out.println("In IOException");
+//            ex.printStackTrace();
+        }finally {
+            if(clientSocket!=null) try {
+                clientSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            started = false;
         }
-
     }
 }

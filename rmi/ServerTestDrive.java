@@ -14,5 +14,6 @@ public class ServerTestDrive {
                 new InetSocketAddress("127.0.0.1", 8081));
         skeleton.start();
         System.out.println("Server starts...");
+//        skeleton.stop();
     }
 }

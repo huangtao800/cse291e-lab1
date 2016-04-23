@@ -35,17 +35,12 @@ public class ClientHandler<T> implements Runnable {
 
     public void run(){
         try {
-            InetAddress clientAddress = clientSocket.getInetAddress();
-            String clientHost = (clientAddress != null) ? clientAddress.getHostAddress() : "0.0.0.0";
-
             ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream());
 
             ObjectInputStream ois = new ObjectInputStream(clientSocket.getInputStream());
             try {
-                Object r = null;
-                while((r=ois.readObject()) == null){}   // wait for request
                 System.out.println("Request received");
-                Serializable[] request = (Serializable[]) r;
+                Serializable[] request = (Serializable[]) ois.readObject();
                 String methodName = (String) request[0];
                 Method m = getMethod(methodName);
                 if(m == null){
@@ -65,7 +60,7 @@ public class ClientHandler<T> implements Runnable {
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
-
+            clientSocket.close();
 
 //            try {
 //                String methodName = (String)ois.readObject();

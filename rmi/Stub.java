@@ -22,24 +22,6 @@ import java.net.*;
 public abstract class Stub implements Serializable
 {
 
-
-    private static String checkRMIException(Method[] methods){
-        String ret = "";
-        for(Method m : methods){
-            Class<?>[] exceptions = m.getExceptionTypes();
-            boolean containRMIExcep = false;
-            for(Class ex : exceptions){
-                if(ex == RMIException.class){
-                    containRMIExcep = true;
-                    break;
-                }
-            }
-            if(!containRMIExcep)    ret = m.getName();
-            break;
-        }
-        return ret;
-    }
-
     /** Creates a stub, given a skeleton with an assigned adress.
 
         <p>
@@ -74,7 +56,7 @@ public abstract class Stub implements Serializable
             throw new NullPointerException();
         }
         if(skeleton.iAddress==null && (skeleton.listenThread==null || skeleton.listenThread.isInterrupted())){
-            throw new IllegalStateException("Skeleton has not been started and has not been started.");
+            throw new IllegalStateException("Skeleton has not been assigned an address and has not been started.");
         }
         Method[] methods = c.getMethods();
         String noRmiMethod = checkRMIException(methods);
@@ -178,6 +160,23 @@ public abstract class Stub implements Serializable
         } catch (Exception e) {
             e.printStackTrace();
             throw new Error("Cannot create object");
+        }
+        return ret;
+    }
+
+    private static String checkRMIException(Method[] methods){
+        String ret = "";
+        for(Method m : methods){
+            Class<?>[] exceptions = m.getExceptionTypes();
+            boolean containRMIExcep = false;
+            for(Class ex : exceptions){
+                if(ex == RMIException.class){
+                    containRMIExcep = true;
+                    break;
+                }
+            }
+            if(!containRMIExcep)    ret = m.getName();
+            break;
         }
         return ret;
     }
