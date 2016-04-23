@@ -31,6 +31,7 @@ public class Skeleton<T>
     private T server;
     protected InetSocketAddress iAddress;
     private Thread listenThread = null;
+    private ServerSocket serverSocket;
 
     /** Creates a <code>Skeleton</code> with no initial server address. The
         address will be determined by the system when <code>start</code> is
@@ -167,7 +168,12 @@ public class Skeleton<T>
         }
 
         try {
-            Listening<T> listening = new Listening<T>(server);
+            if(iAddress == null) {
+                serverSocket = new ServerSocket(5000);
+            } else {
+                serverSocket = new ServerSocket(iAddress.getPort(), 50, iAddress.getAddress());
+            }
+            Listening<T> listening = new Listening<T>(server, serverSocket);
             listenThread = new Thread(listening);
             listenThread.start();
         } catch (IOException e) {

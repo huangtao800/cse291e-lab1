@@ -12,12 +12,10 @@ public class Listening<T> implements Runnable{
     private ServerSocket serverSocket;
     private T server;
 
-    private InetAddress inetAddress;
 
-
-    public Listening(T server) throws IOException {
+    public Listening(T server, ServerSocket serverSocket) throws IOException {
         this.server = server;
-        this.serverSocket = new ServerSocket(5000);
+        this.serverSocket = serverSocket;
     }
 
     public void run(){
@@ -30,7 +28,7 @@ public class Listening<T> implements Runnable{
                 t.start();
             }
         }catch (IOException ex){
-            
+
         }
 
     }
