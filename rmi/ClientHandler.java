@@ -5,6 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.Arrays;
 
 /**
  * Created by tao on 4/15/16.
@@ -20,6 +21,18 @@ public class ClientHandler<T> implements Runnable {
         this.clientSocket = clientSocket;
     }
 
+    public Method getMethod(String methodName){
+        Method[] methods = serverInterface.getClass().getMethods();
+        for(Method m : methods){
+            if(m.getName().equals(methodName))  return m;
+        }
+        return null;
+    }
+
+    private void methodNotFound(String methodName){
+        System.out.println(methodName + " not found!");
+    }
+
     public void run(){
         try {
             InetAddress clientAddress = clientSocket.getInetAddress();
@@ -28,49 +41,74 @@ public class ClientHandler<T> implements Runnable {
             ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream());
 
             ObjectInputStream ois = new ObjectInputStream(clientSocket.getInputStream());
-            Object request = null;
             try {
-                String methodName = (String)ois.readObject();
-                Class clazz = serverInterface.getClass();
-
-                //find the method to be executed
-                Method[] methods = clazz.getMethods();
-                Method method = null;
-                for(Method m : methods) {
-                    if(m.getName().equals(methodName)) {
-                        method = m;
-                        break;
-                    }
+                Object r = null;
+                while((r=ois.readObject()) == null){}   // wait for request
+                System.out.println("Request received");
+                Serializable[] request = (Serializable[]) r;
+                String methodName = (String) request[0];
+                Method m = getMethod(methodName);
+                if(m == null){
+                    methodNotFound(methodName);
                 }
-
-                Class[] types = method.getParameterTypes();
-                Object[] params = new Object[types.length];
-
-                for(int i = 0; i < params.length; i++) {
-                    unmashallValue(types[i], ois);
+                int argNum = m.getParameterTypes().length;
+                Object[] params = Arrays.copyOfRange(request, 1, argNum + 1);
+                Object result = m.invoke(serverInterface, params);
+                Class returnType = m.getReturnType();
+                if(returnType != void.class){
+                    oos.writeObject(result);
                 }
-
-                //execute the method
-                Object result = null;
-                Class returnType = method.getReturnType();
-                result = method.invoke(serverInterface, params);
-
-                //send the result back
-                if(returnType != void.class) {
-                    marshallValue(returnType, result, oos);
-                }
-
-                /*while((request=ois.readObject())!=null){
-
-                }*/
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
-                // return class not found
             } catch (InvocationTargetException e) {
                 e.printStackTrace();
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
+
+
+//            try {
+//                String methodName = (String)ois.readObject();
+//                Class clazz = serverInterface.getClass();
+//
+//                //find the method to be executed
+//                Method[] methods = clazz.getMethods();
+//                Method method = null;
+//                for(Method m : methods) {
+//                    if(m.getName().equals(methodName)) {
+//                        method = m;
+//                        break;
+//                    }
+//                }
+//
+//                Class[] types = method.getParameterTypes();
+//                Object[] params = new Object[types.length];
+//
+//                for(int i = 0; i < params.length; i++) {
+//                    unmashallValue(types[i], ois);
+//                }
+//
+//                //execute the method
+//                Object result = null;
+//                Class returnType = method.getReturnType();
+//                result = method.invoke(serverInterface, params);
+//
+//                //send the result back
+//                if(returnType != void.class) {
+//                    marshallValue(returnType, result, oos);
+//                }
+//
+//                /*while((request=ois.readObject())!=null){
+//
+//                }*/
+//            } catch (ClassNotFoundException e) {
+//                e.printStackTrace();
+//                // return class not found
+//            } catch (InvocationTargetException e) {
+//                e.printStackTrace();
+//            } catch (IllegalAccessException e) {
+//                e.printStackTrace();
+//            }
         } catch (IOException e) {
             e.printStackTrace();
         }

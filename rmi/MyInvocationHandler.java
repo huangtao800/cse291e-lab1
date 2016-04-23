@@ -13,15 +13,15 @@ public class MyInvocationHandler extends Stub implements InvocationHandler {
     private Socket socket;
 
     public MyInvocationHandler(InetSocketAddress address) throws IOException {
-        this.socket = new Socket(address.getAddress(), 5000);
+        this.socket = new Socket(address.getAddress(), address.getPort());
     }
 
     public MyInvocationHandler(Skeleton skeleton) throws IOException {
-        this.socket = new Socket(skeleton.iAddress.getAddress(), 5000);
+        this.socket = new Socket(skeleton.iAddress.getAddress(), 8080);
     }
 
     public MyInvocationHandler(String hostName) throws IOException {
-        this.socket = new Socket(hostName, 5000);
+        this.socket = new Socket(hostName, 8080);
     }
 
     @Override
@@ -56,10 +56,30 @@ public class MyInvocationHandler extends Stub implements InvocationHandler {
         }
     }
 
+    public Serializable[] marshall(Method method, Object[] args) throws NotSerializableException {
+        int argNum = 0;
+        Class[] argTypes = method.getParameterTypes();
+        argNum = argTypes.length;
+
+        Serializable[] request = new Serializable[argNum + 1];
+        int pos = 0;
+        String methodName = method.getName();
+        request[pos++] = methodName;
+
+        try{
+            for(int i=0;i<argNum;i++){
+                Serializable t = (Serializable) args[i];
+                request[pos++] = t;
+            }
+        }catch (ClassCastException e){
+            throw new NotSerializableException("Argument(s) Not Serializable");
+        }
+        return request;
+    }
+
     public Object invokeRemoteMethod(Object proxy, Method method, Object[] args) throws Exception {
         // I think this proxy object is useless, since it should call RMI    -- Tao
         ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-        String methodName = method.getName();
         /*try {
             oos.writeObject(methodName);
             Class[] types = method.getParameterTypes();
@@ -71,19 +91,9 @@ public class MyInvocationHandler extends Stub implements InvocationHandler {
             System.err.println("Error in marshalling arguments");
             ie.printStackTrace();
         }*/
+        Serializable[] request = marshall(method, args);
 
-        Serializable[] argList = new Serializable[args.length+1];
-        argList[0] = methodName;
-        try{
-            for(int i=0;i<args.length;i++){
-                Serializable t = (Serializable) args[i];
-                argList[i + 1] = t;
-            }
-        }catch (ClassCastException e){
-            throw new NotSerializableException("Argument(s) Not Serializable");
-        }
-
-        oos.writeObject(argList);
+        oos.writeObject(request);
         oos.flush();
 
         //GET THE RESULT OF THE REMOTE METHOD EXECUTION
@@ -101,7 +111,7 @@ public class MyInvocationHandler extends Stub implements InvocationHandler {
             while((ret=ois.readObject())==null){
 
             }
-            ret = unmarshallValue(returnType, ois);
+//            ret = unmarshallValue(returnType, ois);
 
 
         } catch (Exception e) {
