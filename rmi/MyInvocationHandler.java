@@ -93,6 +93,7 @@ public class MyInvocationHandler extends Stub implements InvocationHandler {
     }
 
     public Object invokeRemoteMethod(Object proxy, Method method, Object[] args) throws Exception {
+        // Global variables needs synchronization.
         synchronized (this) {
             if (this.skeleton != null) {
                 this.socket = new Socket(skeleton.iAddress.getAddress(), skeleton.iAddress.getPort());
@@ -159,57 +160,5 @@ public class MyInvocationHandler extends Stub implements InvocationHandler {
             iface = iface.substring(dot + 1);
         }
         return "Proxy[" + iface + "," + this + "]" + ", " + address;
-    }
-
-    private void marshallValue(Class<?> clazz, Object arg, ObjectOutputStream oos) throws IOException {
-        if(clazz.isPrimitive()) {
-            if(clazz == Integer.TYPE) {
-                oos.writeInt(((Integer)arg).intValue());
-            } else if(clazz == Boolean.TYPE) {
-                oos.writeBoolean(((Boolean)arg).booleanValue());
-            } else if(clazz == Byte.TYPE) {
-                oos.writeByte(((Byte)arg).byteValue());
-            } else if(clazz == Character.TYPE) {
-                oos.writeByte(((Character)arg).charValue());
-            } else if(clazz == Short.TYPE) {
-                oos.writeShort(((Short)arg).shortValue());
-            } else if(clazz == Long.TYPE) {
-                oos.writeLong(((Long)arg).longValue());
-            } else if(clazz == Float.TYPE) {
-                oos.writeFloat(((Float)arg).floatValue());
-            } else if(clazz == Double.TYPE) {
-                oos.writeDouble(((Double)arg).doubleValue());
-            } else {
-                throw new Error("Unrecognized primitive type " + clazz);
-            }
-        } else {
-            oos.writeObject(arg);
-        }
-    }
-
-    private Object unmarshallValue(Class<?> clazz, ObjectInputStream ois) throws IOException, ClassNotFoundException {
-        if(clazz.isPrimitive()) {
-            if(clazz == Integer.TYPE) {
-                return Integer.valueOf(ois.readInt());
-            } else if(clazz == Boolean.TYPE) {
-                return Boolean.valueOf(ois.readBoolean());
-            } else if(clazz == Byte.TYPE) {
-                return Byte.valueOf(ois.readByte());
-            } else if(clazz == Character.TYPE) {
-                return Character.valueOf(ois.readChar());
-            } else if(clazz == Short.TYPE) {
-                return Short.valueOf(ois.readShort());
-            } else if(clazz == Long.TYPE) {
-                return Long.valueOf(ois.readLong());
-            } else if(clazz == Float.TYPE) {
-                return Float.valueOf(ois.readFloat());
-            } else if(clazz == Double.TYPE) {
-                return Double.valueOf(ois.readDouble());
-            } else {
-                throw new Error("Unrecognized primitive type " + clazz);
-            }
-        } else {
-            return ois.readObject();
-        }
     }
 }
