@@ -115,7 +115,7 @@ public abstract class Stub implements Serializable
             throw new Error(noRmiMethod + " does not throw RMIException");
         }
         if(skeleton.iAddress==null){
-            throw new Error("The skeleton has not been assigned a port");
+            throw new IllegalStateException("The skeleton has not been assigned a port");
         }
 
         T ret = null;

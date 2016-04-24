@@ -178,8 +178,8 @@ public class Skeleton<T>
 
         try {
             if(iAddress == null){
-                InetAddress host = InetAddress.getLocalHost();
-                iAddress = new InetSocketAddress(host, 8081);
+//                InetAddress host = InetAddress.getLocalHost();
+                iAddress = new InetSocketAddress(7000);
             }
             serverSocket = new ServerSocket(iAddress.getPort(), 50, iAddress.getAddress());
 

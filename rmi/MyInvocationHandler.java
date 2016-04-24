@@ -13,22 +13,32 @@ import java.net.Socket;
 public class MyInvocationHandler extends Stub implements InvocationHandler {
     private Socket socket;
     private Skeleton skeleton = null;
+    private String hostname;
+    private int port;
 
     public MyInvocationHandler(InetSocketAddress address) throws IOException {
-        this.socket = new Socket(address.getAddress(), address.getPort());
+        this.hostname = address.getHostName();
+        this.port = address.getPort();
     }
 
     public MyInvocationHandler(Skeleton skeleton) throws IOException {
-        this.socket = new Socket(skeleton.iAddress.getAddress(), skeleton.iAddress.getPort());
+//        this.socket = new Socket(skeleton.iAddress.getAddress(), skeleton.iAddress.getPort());
         this.skeleton = skeleton;
     }
 
     public MyInvocationHandler(String hostName, int port) throws IOException {
-        this.socket = new Socket(hostName, port);
+        this.hostname = hostName;
+        this.port = port;
     }
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        if(this.skeleton!=null){
+            this.socket = new Socket(skeleton.iAddress.getAddress(), skeleton.iAddress.getPort());
+        }else{
+//            System.out.println("Address: " + hostname + ": " + port);
+            this.socket = new Socket(hostname, port);
+        }
         if(method.getDeclaringClass() == Object.class) {
             return invokeObjectMethod(proxy, method, args);
         } else {
@@ -90,17 +100,20 @@ public class MyInvocationHandler extends Stub implements InvocationHandler {
 
     public Object invokeRemoteMethod(Object proxy, Method method, Object[] args) throws Exception {
         // I think this proxy object is useless, since it should call RMI    -- Tao
-        ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-
-        Serializable[] request = marshall(method, args);
-
-        oos.writeObject(request);
-        oos.flush();
-        System.out.println("Request sent");
-
-        //GET THE RESULT OF THE REMOTE METHOD EXECUTION
         Object ret = null;
-        try {
+
+        try{
+            ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+
+            Serializable[] request = marshall(method, args);
+
+            oos.writeObject(request);
+            oos.flush();
+            System.out.println("Request sent");
+
+            //GET THE RESULT OF THE REMOTE METHOD EXECUTION
+
+
             Class returnType = method.getReturnType();
             //the return type of the method is void
             if(returnType == void.class) {
@@ -113,11 +126,9 @@ public class MyInvocationHandler extends Stub implements InvocationHandler {
             while((ret=ois.readObject())==null){
 
             }
-//            ret = unmarshallValue(returnType, ois);
-
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        }catch (Exception e){
+//            e.printStackTrace();
+            throw new RMIException("Remote call fails");
         }
 
         return ret;
