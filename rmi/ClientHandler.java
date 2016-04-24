@@ -50,6 +50,7 @@ public class ClientHandler<T> implements Runnable {
                 Object[] params = Arrays.copyOfRange(request, 1, argNum + 1);
 
                 Object result = m.invoke(serverInterface, params);
+                System.out.println("After invocation: ----------------");
 
                 Class returnType = m.getReturnType();
                 if(returnType != void.class){
@@ -60,7 +61,7 @@ public class ClientHandler<T> implements Runnable {
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             } catch (InvocationTargetException e) {
-                e.printStackTrace();
+//                e.printStackTrace();
                 oos.writeObject(e.getTargetException());
             } catch (IllegalAccessException e) {
                 e.printStackTrace();

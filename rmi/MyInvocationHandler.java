@@ -101,7 +101,7 @@ public class MyInvocationHandler extends Stub implements InvocationHandler {
     public Object invokeRemoteMethod(Object proxy, Method method, Object[] args) throws Exception {
         Object ret = null;
         ObjectOutputStream oos;
-
+        ObjectInputStream ois;
         try {
             oos = new ObjectOutputStream(socket.getOutputStream());
             Serializable[] request = marshall(method, args);
@@ -110,21 +110,21 @@ public class MyInvocationHandler extends Stub implements InvocationHandler {
             oos.flush();
             System.out.println("Request sent");
         }catch (Exception e){
-            e.printStackTrace();
-            throw new RMIException("Remote call fails");
+//            e.printStackTrace();
+            throw new RMIException("Remote call fails. Throws " + e.getClass().getName());
         }
-
 
         Class returnType = method.getReturnType();
         try{
             // get result
-            ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+            ois = new ObjectInputStream(socket.getInputStream());
             ret = ois.readObject();
         }catch (Exception e){
+//            e.printStackTrace();
+            System.out.println(method.getName());
             e.printStackTrace();
             throw new RMIException("Remote call fails");
         }
-
 
         if(ret instanceof String && returnType==void.class){
             String retString = (String) ret;
@@ -133,6 +133,9 @@ public class MyInvocationHandler extends Stub implements InvocationHandler {
         if(ret instanceof Exception){
             throw (Exception) ret;
         }
+
+        if(oos!=null)   oos.close();
+        if(ois!=null)   ois.close();
 
         return ret;
     }
