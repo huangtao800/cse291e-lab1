@@ -93,12 +93,14 @@ public class MyInvocationHandler extends Stub implements InvocationHandler {
     }
 
     public Object invokeRemoteMethod(Object proxy, Method method, Object[] args) throws Exception {
-        if(this.skeleton!=null){
-            this.socket = new Socket(skeleton.iAddress.getAddress(), skeleton.iAddress.getPort());
-        }else{
-            this.socket = new Socket(hostname, port);
+        synchronized (this) {
+            if (this.skeleton != null) {
+                this.socket = new Socket(skeleton.iAddress.getAddress(), skeleton.iAddress.getPort());
+            } else {
+                this.socket = new Socket(hostname, port);
+            }
         }
-        
+
         Object ret = null;
         ObjectOutputStream oos;
         ObjectInputStream ois;
@@ -136,7 +138,7 @@ public class MyInvocationHandler extends Stub implements InvocationHandler {
 
         if(oos!=null)   oos.close();
         if(ois!=null)   ois.close();
-
+        this.socket.close();
         return ret;
     }
 
