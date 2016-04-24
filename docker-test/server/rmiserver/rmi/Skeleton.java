@@ -188,6 +188,7 @@ public class Skeleton<T>
             listenThread.start();
 
         } catch (IOException e) {
+            e.printStackTrace();
             throw new RMIException("Cannot create Socket");
         }
         //throw new UnsupportedOperationException("not implemented");

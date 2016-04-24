@@ -21,6 +21,7 @@ public class PingClient {
         for(int i=0;i<testTimes;i++){
             try {
                 String res = client.pingServer(ip, port);
+                System.out.println(res);
                 success++;
             } catch (RMIException e) {
 //                e.printStackTrace();
