@@ -33,12 +33,6 @@ public class MyInvocationHandler extends Stub implements InvocationHandler {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        if(this.skeleton!=null){
-            this.socket = new Socket(skeleton.iAddress.getAddress(), skeleton.iAddress.getPort());
-        }else{
-//            System.out.println("Address: " + hostname + ": " + port);
-            this.socket = new Socket(hostname, port);
-        }
         if(method.getDeclaringClass() == Object.class) {
             return invokeObjectMethod(proxy, method, args);
         } else {
@@ -99,6 +93,12 @@ public class MyInvocationHandler extends Stub implements InvocationHandler {
     }
 
     public Object invokeRemoteMethod(Object proxy, Method method, Object[] args) throws Exception {
+        if(this.skeleton!=null){
+            this.socket = new Socket(skeleton.iAddress.getAddress(), skeleton.iAddress.getPort());
+        }else{
+            this.socket = new Socket(hostname, port);
+        }
+        
         Object ret = null;
         ObjectOutputStream oos;
         ObjectInputStream ois;
@@ -141,8 +141,8 @@ public class MyInvocationHandler extends Stub implements InvocationHandler {
     }
 
     private String proxyToString(Object proxy) {
-        String address = "Host name: " + socket.getInetAddress().getHostName() + ", port: "
-                + socket.getPort();
+        String address = "Host name: " + this.hostname + ", port: "
+                + this.port;
         Class<?>[] interfaces;
         interfaces = proxy.getClass().getInterfaces();
         if(interfaces.length == 0) {
