@@ -48,22 +48,26 @@ public class ClientHandler<T> implements Runnable {
                 }
                 int argNum = m.getParameterTypes().length;
                 Object[] params = Arrays.copyOfRange(request, 1, argNum + 1);
+
                 Object result = m.invoke(serverInterface, params);
+
                 Class returnType = m.getReturnType();
                 if(returnType != void.class){
                     oos.writeObject(result);
+                }else{
+                    oos.writeObject("Complete");
                 }
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             } catch (InvocationTargetException e) {
                 e.printStackTrace();
+                oos.writeObject(e.getTargetException());
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
             clientSocket.close();
         } catch (IOException e) {
             System.out.println("Getting Input/Output stream error");
-//            e.printStackTrace();
         }
 
     }

@@ -99,36 +99,39 @@ public class MyInvocationHandler extends Stub implements InvocationHandler {
     }
 
     public Object invokeRemoteMethod(Object proxy, Method method, Object[] args) throws Exception {
-        // I think this proxy object is useless, since it should call RMI    -- Tao
         Object ret = null;
+        ObjectOutputStream oos;
 
-        try{
-            ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-
+        try {
+            oos = new ObjectOutputStream(socket.getOutputStream());
             Serializable[] request = marshall(method, args);
 
             oos.writeObject(request);
             oos.flush();
             System.out.println("Request sent");
+        }catch (Exception e){
+            e.printStackTrace();
+            throw new RMIException("Remote call fails");
+        }
 
-            //GET THE RESULT OF THE REMOTE METHOD EXECUTION
 
-
-            Class returnType = method.getReturnType();
-            //the return type of the method is void
-            if(returnType == void.class) {
-                return null;
-            }
-
+        Class returnType = method.getReturnType();
+        try{
             // get result
             ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-            // wait for reply
-            while((ret=ois.readObject())==null){
-
-            }
+            ret = ois.readObject();
         }catch (Exception e){
-//            e.printStackTrace();
+            e.printStackTrace();
             throw new RMIException("Remote call fails");
+        }
+
+
+        if(ret instanceof String && returnType==void.class){
+            String retString = (String) ret;
+            if(retString.equals("Complete"))    return null;
+        }
+        if(ret instanceof Exception){
+            throw (Exception) ret;
         }
 
         return ret;
