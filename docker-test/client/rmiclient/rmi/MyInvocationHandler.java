@@ -111,7 +111,7 @@ public class MyInvocationHandler extends Stub implements InvocationHandler {
 
             oos.writeObject(request);
             oos.flush();
-            System.out.println("Request sent");
+//            System.out.println("Request sent");
         }catch (Exception e){
 //            e.printStackTrace();
             throw new RMIException("Remote call fails. Throws " + e.getClass().getName());

@@ -39,7 +39,7 @@ public class ClientHandler<T> implements Runnable {
 
             ObjectInputStream ois = new ObjectInputStream(clientSocket.getInputStream());
             try {
-                System.out.println("Request received");
+//                System.out.println("Request received");
                 Serializable[] request = (Serializable[]) ois.readObject();
                 String methodName = (String) request[0];
                 Method m = getMethod(methodName);
