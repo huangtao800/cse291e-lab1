@@ -1,0 +1,6 @@
+docker stop rmiserver
+docker stop rmiclient
+docker rm rmiserver
+docker rm rmiclient
+docker rmi codecancer/rmiserver
+docker rmi codecancer/rmiclient

@@ -1,0 +1,12 @@
+docker build -t codecancer/rmiserver ./server/
+docker build -t codecancer/rmiclient ./client/
+
+docker run -itd --name=rmiserver codecancer/rmiserver /bin/bash -c "javac rmi/*.java; java rmi/PingServer"
+
+server_ip=$(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' rmiserver)
+
+docker run -itd --name=rmiclient codecancer/rmiclient /bin/bash -c "javac rmi/*.java; java rmi/PingClient $server_ip"
+
+sleep 3s
+output=$(docker logs rmiclient)
+echo "$output"
