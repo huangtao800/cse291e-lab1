@@ -126,21 +126,15 @@ public class MyInvocationHandler<T> extends Stub implements InvocationHandler {
 
             oos.writeObject(request);
             oos.flush();
-//            System.out.println("Request sent");
         }catch (Exception e){
-//            e.printStackTrace();
             throw new RMIException("Remote call fails. Throws " + e.getClass().getName());
         }
 
         Class returnType = method.getReturnType();
         try{
-            // get result
             ois = new ObjectInputStream(socket.getInputStream());
             ret = ois.readObject();
         }catch (Exception e){
-//            e.printStackTrace();
-//            System.out.println(method.getName());
-//            e.printStackTrace();
             throw new RMIException("Remote call fails");
         }
 

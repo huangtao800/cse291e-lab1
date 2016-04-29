@@ -42,13 +42,13 @@ public class ClientHandler<T> implements Runnable {
     public void run(){
         try {
             ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream());
-
             ObjectInputStream ois = new ObjectInputStream(clientSocket.getInputStream());
+
             try {
                 Serializable[] request = (Serializable[]) ois.readObject();
                 String methodName = (String) request[0];
-
                 Method m = getMethod(methodName);
+
                 if(m == null){
                     throwException(oos, new RMIException("Method not found"));
                 }else{
