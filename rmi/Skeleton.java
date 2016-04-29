@@ -187,12 +187,14 @@ public class Skeleton<T>
             }
             serverSocket = new ServerSocket(iAddress.getPort(), 50, iAddress.getAddress());
 
-            runnable = new Listening<T>(server, serverSocket);
+            runnable = new Listening<T>(server, serverSocket, this);
             listenThread = new Thread(runnable);
             listenThread.start();
 
         } catch (IOException e) {
-            throw new RMIException("Cannot create Socket");
+            RMIException exception = new RMIException("Cannot create Socket");
+//            this.service_error(exception);
+            throw exception;
         }
         //throw new UnsupportedOperationException("not implemented");
     }

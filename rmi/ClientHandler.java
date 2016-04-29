@@ -15,10 +15,12 @@ import java.util.Arrays;
 public class ClientHandler<T> implements Runnable {
     private T serverInterface;
     private Socket clientSocket;
+    private Skeleton<T> skeleton;
 
-    public ClientHandler(T server, Socket clientSocket){
+    public ClientHandler(T server, Socket clientSocket, Skeleton<T> skeleton){
         this.serverInterface = server;
         this.clientSocket = clientSocket;
+        this.skeleton = skeleton;
     }
 
     public Method getMethod(String methodName){
@@ -72,6 +74,8 @@ public class ClientHandler<T> implements Runnable {
             clientSocket.close();
         } catch (IOException e) {
             System.out.println("Getting Input/Output stream error");
+            RMIException exception = new RMIException(e.getMessage());
+            skeleton.service_error(exception);
         }
 
     }
