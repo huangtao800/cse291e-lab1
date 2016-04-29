@@ -59,6 +59,8 @@ public class Skeleton<T>
         if(c == null || server == null) {
             throw new NullPointerException();
         }
+        if(!c.isInterface())    throw new Error("c does not represent a remote interface");
+
         Method[] methods = c.getMethods();
         String noRmiMethod = checkRMIException(methods);
         if(!noRmiMethod.equals("")){
@@ -93,6 +95,8 @@ public class Skeleton<T>
         if(c == null || server == null) {
             throw new NullPointerException();
         }
+        if(!c.isInterface())    throw new Error("c does not represent a remote interface");
+
         Method[] methods = c.getMethods();
         String noRmiMethod = checkRMIException(methods);
         if(!noRmiMethod.equals("")){
