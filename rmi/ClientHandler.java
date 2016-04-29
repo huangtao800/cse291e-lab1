@@ -48,7 +48,7 @@ public class ClientHandler<T> implements Runnable {
                 }
                 int argNum = m.getParameterTypes().length;
                 Object[] params = Arrays.copyOfRange(request, 1, argNum + 1);
-
+                m.setAccessible(true);
                 Object result = m.invoke(serverInterface, params);
 
                 Class returnType = m.getReturnType();
@@ -64,6 +64,7 @@ public class ClientHandler<T> implements Runnable {
                 oos.writeObject(e.getTargetException());
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
+                System.out.println(e.getMessage());
             }
             clientSocket.close();
         } catch (IOException e) {
