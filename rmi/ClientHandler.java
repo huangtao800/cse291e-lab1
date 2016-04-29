@@ -39,9 +39,9 @@ public class ClientHandler<T> implements Runnable {
 
             ObjectInputStream ois = new ObjectInputStream(clientSocket.getInputStream());
             try {
-//                System.out.println("Request received");
                 Serializable[] request = (Serializable[]) ois.readObject();
                 String methodName = (String) request[0];
+
                 Method m = getMethod(methodName);
                 if(m == null){
                     methodNotFound(methodName);
@@ -61,10 +61,13 @@ public class ClientHandler<T> implements Runnable {
                 e.printStackTrace();
             } catch (InvocationTargetException e) {
                 // reply checked exceptions
-                oos.writeObject(e.getTargetException());
+//                e.printStackTrace();
+                Object[] res = new Object[2];
+                res[0] = "Throw error";
+                res[1] = e.getTargetException();
+                oos.writeObject(res);
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
-                System.out.println(e.getMessage());
             }
             clientSocket.close();
         } catch (IOException e) {

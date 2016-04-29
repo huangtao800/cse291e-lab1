@@ -134,8 +134,11 @@ public class MyInvocationHandler extends Stub implements InvocationHandler {
             String retString = (String) ret;
             if(retString.equals("Complete"))    return null;
         }
-        if(ret instanceof Exception){
-            throw (Exception) ret;
+        if(ret instanceof Object[]){
+            Object[] arr = (Object[]) ret;
+            String str = (String) arr[0];
+            Object excep = arr[1];
+            throw (Exception) excep;
         }
 
         if(oos!=null)   oos.close();
