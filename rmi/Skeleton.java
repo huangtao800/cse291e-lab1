@@ -187,7 +187,7 @@ public class Skeleton<T>
             }
             serverSocket = new ServerSocket(iAddress.getPort(), 50, iAddress.getAddress());
 
-            runnable = new Listening<T>(server, serverSocket, this);
+            runnable = new Listening<T>(server, serverSocket, this, this.c);
             listenThread = new Thread(runnable);
             listenThread.start();
 
@@ -239,5 +239,9 @@ public class Skeleton<T>
             break;
         }
         return ret;
+    }
+
+    public Class<T> getTClass(){
+        return this.c;
     }
 }

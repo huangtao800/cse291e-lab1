@@ -16,23 +16,28 @@ public class ClientHandler<T> implements Runnable {
     private T serverInterface;
     private Socket clientSocket;
     private Skeleton<T> skeleton;
+    private Class<T> c;
 
-    public ClientHandler(T server, Socket clientSocket, Skeleton<T> skeleton){
+    public ClientHandler(T server, Socket clientSocket, Skeleton<T> skeleton, Class<T> c){
         this.serverInterface = server;
         this.clientSocket = clientSocket;
         this.skeleton = skeleton;
+        this.c = c;
     }
 
     public Method getMethod(String methodName){
-        Method[] methods = serverInterface.getClass().getMethods();
+        Method[] methods = c.getMethods();
         for(Method m : methods){
             if(m.getName().equals(methodName))  return m;
         }
         return null;
     }
 
-    private void methodNotFound(String methodName){
-        System.out.println(methodName + " not found!");
+    private void throwException(ObjectOutputStream oos, Throwable e) throws IOException {
+        Object[] res = new Object[2];
+        res[0] = "Throw error";
+        res[1] = e;
+        oos.writeObject(res);
     }
 
     public void run(){
@@ -46,28 +51,25 @@ public class ClientHandler<T> implements Runnable {
 
                 Method m = getMethod(methodName);
                 if(m == null){
-                    methodNotFound(methodName);
-                }
-                int argNum = m.getParameterTypes().length;
-                Object[] params = Arrays.copyOfRange(request, 1, argNum + 1);
-                m.setAccessible(true);
-                Object result = m.invoke(serverInterface, params);
-
-                Class returnType = m.getReturnType();
-                if(returnType != void.class){
-                    oos.writeObject(result);
+                    throwException(oos, new RMIException("Method not found"));
                 }else{
-                    oos.writeObject("Complete");
+                    int argNum = m.getParameterTypes().length;
+                    Object[] params = Arrays.copyOfRange(request, 1, argNum + 1);
+                    m.setAccessible(true);
+                    Object result = m.invoke(serverInterface, params);
+
+                    Class returnType = m.getReturnType();
+                    if(returnType != void.class){
+                        oos.writeObject(result);
+                    }else{
+                        oos.writeObject("Complete");
+                    }
                 }
+
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             } catch (InvocationTargetException e) {
-                // reply checked exceptions
-//                e.printStackTrace();
-                Object[] res = new Object[2];
-                res[0] = "Throw error";
-                res[1] = e.getTargetException();
-                oos.writeObject(res);
+                throwException(oos, e.getTargetException());
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }

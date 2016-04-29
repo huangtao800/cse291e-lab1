@@ -2,6 +2,7 @@ package rmi;
 
 import java.io.*;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.InetSocketAddress;
@@ -10,31 +11,45 @@ import java.net.Socket;
 /**
  * Created by tao on 4/15/16.
  */
-public class MyInvocationHandler extends Stub implements InvocationHandler {
+public class MyInvocationHandler<T> extends Stub implements InvocationHandler {
     private Socket socket;
-    private Skeleton skeleton = null;
+    private Skeleton<T> skeleton = null;
     private String hostname;
     private int port;
+    private Class<T> c;
 
-    public MyInvocationHandler(InetSocketAddress address) throws IOException {
+    public MyInvocationHandler(InetSocketAddress address, Class<T> c) throws IOException {
         this.hostname = address.getHostName();
         this.port = address.getPort();
+        this.c = c;
     }
 
-    public MyInvocationHandler(Skeleton skeleton) throws IOException {
+    public MyInvocationHandler(Skeleton skeleton, Class<T> c) throws IOException {
 //        this.socket = new Socket(skeleton.iAddress.getAddress(), skeleton.iAddress.getPort());
         this.skeleton = skeleton;
+        this.c = c;
     }
 
-    public MyInvocationHandler(String hostName, int port) throws IOException {
+    public MyInvocationHandler(String hostName, int port, Class<T> c) throws IOException {
         this.hostname = hostName;
         this.port = port;
+        this.c = c;
+    }
+
+
+    private boolean isInRemoteInterface(Method method){
+        Method[] methods = this.c.getMethods();
+        for(Method m : methods){
+            if(m.getName().equals(method.getName()))    return true;
+        }
+        return false;
     }
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         String name = method.getName();
-        if(name.equals("equals") || name.equals("toString") || name.equals("hashCode")) {
+        boolean isRemote = isInRemoteInterface(method);
+        if(name.equals("equals") || name.equals("toString") || name.equals("hashCode") || !isRemote) {
             return invokeObjectMethod(proxy, method, args);
         } else {
             return invokeRemoteMethod(proxy, method, args);
@@ -49,7 +64,7 @@ public class MyInvocationHandler extends Stub implements InvocationHandler {
      * @param args
      * @return
      */
-    public Object invokeObjectMethod(Object proxy, Method method, Object[] args) {
+    public Object invokeObjectMethod(Object proxy, Method method, Object[] args) throws Throwable {
         String name = method.getName();
         if(name.equals("hashCode")) {
             if(proxy == null)   return proxy.hashCode();
@@ -93,7 +108,7 @@ public class MyInvocationHandler extends Stub implements InvocationHandler {
         return request;
     }
 
-    public Object invokeRemoteMethod(Object proxy, Method method, Object[] args) throws Exception {
+    public Object invokeRemoteMethod(Object proxy, Method method, Object[] args) throws Throwable {
         // Global variables needs synchronization.
         synchronized (this) {
             if (this.skeleton != null) {

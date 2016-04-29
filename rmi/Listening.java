@@ -13,12 +13,13 @@ public class Listening<T> implements Runnable{
     private T server;
     protected boolean started = true;
     private Skeleton<T> skeleton;
+    private Class<T> c;
 
-
-    public Listening(T server, ServerSocket serverSocket, Skeleton<T> skeleton) throws IOException {
+    public Listening(T server, ServerSocket serverSocket, Skeleton<T> skeleton, Class<T> c) throws IOException {
         this.server = server;
         this.serverSocket = serverSocket;
         this.skeleton = skeleton;
+        this.c = c;
     }
 
     public void run(){
@@ -27,7 +28,7 @@ public class Listening<T> implements Runnable{
             while (started){
                 clientSocket = this.serverSocket.accept();
                 // to do
-                ClientHandler<T> clientHandler = new ClientHandler<>(server, clientSocket, this.skeleton);
+                ClientHandler<T> clientHandler = new ClientHandler<>(server, clientSocket, this.skeleton, c);
                 Thread t = new Thread(clientHandler);
                 t.start();
             }

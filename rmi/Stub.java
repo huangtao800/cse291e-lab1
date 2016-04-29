@@ -67,7 +67,7 @@ public abstract class Stub implements Serializable
 
         T ret = null;
         try {
-            ret = (T) Proxy.newProxyInstance(c.getClassLoader(), new Class<?>[]{c}, new MyInvocationHandler(skeleton));
+            ret = (T) Proxy.newProxyInstance(c.getClassLoader(), new Class<?>[]{c}, new MyInvocationHandler<T>(skeleton, c));
         } catch (Exception e) {
             throw new Error("Cannot create object");
         }
@@ -121,9 +121,9 @@ public abstract class Stub implements Serializable
         T ret = null;
         try {
             ret = (T) Proxy.newProxyInstance(c.getClassLoader(), new Class<?>[]{c},
-                    new MyInvocationHandler(hostname, skeleton.iAddress.getPort()));
+                    new MyInvocationHandler<T>(hostname, skeleton.iAddress.getPort(), c));
         } catch (Exception e) {
-            e.printStackTrace();
+//            e.printStackTrace();
             throw new Error("Cannot create object");
         }
         return ret;
@@ -156,9 +156,9 @@ public abstract class Stub implements Serializable
 
         T ret = null;
         try {
-            ret = (T) Proxy.newProxyInstance(c.getClassLoader(), new Class<?>[] { c }, new MyInvocationHandler(address));
+            ret = (T) Proxy.newProxyInstance(c.getClassLoader(), new Class<?>[] { c }, new MyInvocationHandler<T>(address, c));
         } catch (Exception e) {
-            e.printStackTrace();
+//            e.printStackTrace();
             throw new Error("Cannot create object");
         }
         return ret;
