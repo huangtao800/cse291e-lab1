@@ -33,7 +33,8 @@ public class MyInvocationHandler extends Stub implements InvocationHandler {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        if(method.getDeclaringClass() == Object.class) {
+        String name = method.getName();
+        if(name.equals("equals") || name.equals("toString") || name.equals("hashCode")) {
             return invokeObjectMethod(proxy, method, args);
         } else {
             return invokeRemoteMethod(proxy, method, args);
@@ -124,8 +125,8 @@ public class MyInvocationHandler extends Stub implements InvocationHandler {
             ret = ois.readObject();
         }catch (Exception e){
 //            e.printStackTrace();
-            System.out.println(method.getName());
-            e.printStackTrace();
+//            System.out.println(method.getName());
+//            e.printStackTrace();
             throw new RMIException("Remote call fails");
         }
 
