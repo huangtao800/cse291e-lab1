@@ -3,7 +3,6 @@ package rmi;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Arrays;
 
@@ -66,16 +65,13 @@ public class ClientHandler<T> implements Runnable {
                     }
                 }
 
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
+            } catch (ClassNotFoundException | IllegalAccessException e) {
+                throw e;
             } catch (InvocationTargetException e) {
                 throwException(oos, e.getTargetException());
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
             }
             clientSocket.close();
-        } catch (IOException e) {
-            System.out.println("Getting Input/Output stream error");
+        } catch (Exception e) {
             RMIException exception = new RMIException(e.getMessage());
             skeleton.service_error(exception);
         }
