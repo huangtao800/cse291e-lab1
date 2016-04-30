@@ -27,6 +27,8 @@ public class MyInvocationHandler<T> extends Stub implements InvocationHandler {
 //        this.socket = new Socket(skeleton.iAddress.getAddress(), skeleton.iAddress.getPort());
         this.skeleton = skeleton;
         this.c = c;
+        this.hostname = skeleton.iAddress.getHostName();
+        this.port = skeleton.iAddress.getPort();
     }
 
     public MyInvocationHandler(String hostName, int port, Class<T> c) throws IOException {
@@ -68,16 +70,38 @@ public class MyInvocationHandler<T> extends Stub implements InvocationHandler {
         if(name.equals("hashCode")) {
             if(proxy == null)   return proxy.hashCode();
             MyInvocationHandler handler = (MyInvocationHandler) Proxy.getInvocationHandler(proxy);
-            if(handler.skeleton==null)  return proxy.getClass().hashCode();
-            return proxy.getClass().hashCode() + handler.skeleton.hashCode();
+            return handler.hashCode();
+//            if(handler.skeleton==null)  {
+//                System.out.println("skeleton is null");
+//                System.out.println(proxy.getClass());
+//                return handler.hostname.hashCode() + port;
+//            }
+//            int hashCode = handler.skeleton.hashCode() + handler.hostname.hashCode() + port;
+//            System.out.println();
+//            System.out.println("hashcode: " + hashCode);
+//            return hashCode;
         } else if(name.equals("equals")) {
             Object obj = args[0];
-            if(proxy==null && obj==null)    return true;
-            if(obj==null)   return false;
+            if(proxy == null && obj == null)    return true;
+            if(obj == null)   return false;
             MyInvocationHandler proxyHandler = (MyInvocationHandler) Proxy.getInvocationHandler(proxy);
+            if(!Proxy.isProxyClass(obj.getClass())) {
+                return false;
+            }
             MyInvocationHandler objHandler = (MyInvocationHandler) Proxy.getInvocationHandler(obj);
-            return proxy.getClass().equals(obj.getClass())
-                    && proxyHandler.skeleton.equals(objHandler.skeleton);
+
+//            System.out.println();
+//            System.out.println("invocation handler equals:");
+
+            if(proxyHandler.skeleton != null) {
+                System.out.println("skeleton is not null");
+                return proxy.getClass().equals(obj.getClass())
+                        && equals(objHandler);
+            }
+            System.out.println("skeleton is null");
+            return proxyHandler.equals(objHandler);
+            //return proxyHandler.hashCode() == objHandler.hashCode();
+
         } else if(name.equals("toString")) {
             return proxyToString(proxy);
         } else {
@@ -172,5 +196,49 @@ public class MyInvocationHandler<T> extends Stub implements InvocationHandler {
             iface = iface.substring(dot + 1);
         }
         return "Proxy[" + iface + "," + this + "]" + ", " + address;
+    }
+
+    @Override
+    public String toString() {
+        return super.toString();
+    }
+
+    @Override
+    public int hashCode() {
+//        System.out.println();
+//        System.out.println("Stub.hashCode()");
+//        if(skeleton == null) {
+//            return c.hashCode() + hostname.hashCode() + port;
+//        }
+//        System.out.println();
+//        System.err.println(skeleton.getClass());
+        return c.hashCode() + hostname.hashCode() + port;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        System.out.println();
+        System.out.println("Stub.equals()");
+        System.out.println(this.c);
+        System.out.println(((MyInvocationHandler) obj).c);
+        if(this == null && obj == null) {
+            return true;
+        }
+        if(this == null || obj == null) {
+            return false;
+        }
+
+        if(!(obj instanceof MyInvocationHandler)) {
+            return false;
+        }
+        if(!(((MyInvocationHandler) obj).c.equals(this.c))) {
+            return false;
+        }
+        if(this.skeleton != null && ((MyInvocationHandler) obj).skeleton != null) {
+            if(!(this.skeleton.getClass().equals(((MyInvocationHandler) obj).skeleton.getClass()))) {
+                return false;
+            }
+        }
+        return obj.hashCode() == this.hashCode();
     }
 }
