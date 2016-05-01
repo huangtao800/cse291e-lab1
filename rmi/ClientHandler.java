@@ -29,7 +29,7 @@ public class ClientHandler<T> implements Runnable {
             Method method = c.getMethod(methodName, cArg);
             return method;
         } catch (NoSuchMethodException e) {
-            e.printStackTrace();
+//            e.printStackTrace();
             return null;
         }
     }

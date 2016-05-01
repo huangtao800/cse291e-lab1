@@ -39,9 +39,10 @@ public class MyInvocationHandler<T> extends Stub implements InvocationHandler {
 
 
     private boolean isInRemoteInterface(Method method){
-        Method[] methods = this.c.getMethods();
+        Method[] methods = this.c.getDeclaredMethods();
         for(Method m : methods){
-            if(m.getName().equals(method.getName()))    return true;
+//            if(m.getName().equals(method.getName()))    return true;
+            if(m.equals(method))    return true;
         }
         return false;
     }
@@ -50,7 +51,10 @@ public class MyInvocationHandler<T> extends Stub implements InvocationHandler {
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         String name = method.getName();
         boolean isRemote = isInRemoteInterface(method);
-        if(name.equals("equals") || name.equals("toString") || name.equals("hashCode") || !isRemote) {
+        if(isRemote){
+            return invokeRemoteMethod(proxy, method, args);
+        }
+        if(name.equals("equals") || name.equals("toString") || name.equals("hashCode")) {
             return invokeObjectMethod(proxy, method, args);
         } else {
             return invokeRemoteMethod(proxy, method, args);
@@ -71,15 +75,7 @@ public class MyInvocationHandler<T> extends Stub implements InvocationHandler {
             if(proxy == null)   return proxy.hashCode();
             MyInvocationHandler handler = (MyInvocationHandler) Proxy.getInvocationHandler(proxy);
             return handler.hashCode();
-//            if(handler.skeleton==null)  {
-//                System.out.println("skeleton is null");
-//                System.out.println(proxy.getClass());
-//                return handler.hostname.hashCode() + port;
-//            }
-//            int hashCode = handler.skeleton.hashCode() + handler.hostname.hashCode() + port;
-//            System.out.println();
-//            System.out.println("hashcode: " + hashCode);
-//            return hashCode;
+
         } else if(name.equals("equals")) {
             Object obj = args[0];
             if(proxy == null && obj == null)    return true;
@@ -90,15 +86,12 @@ public class MyInvocationHandler<T> extends Stub implements InvocationHandler {
             }
             MyInvocationHandler objHandler = (MyInvocationHandler) Proxy.getInvocationHandler(obj);
 
-//            System.out.println();
-//            System.out.println("invocation handler equals:");
-
             if(proxyHandler.skeleton != null) {
                 System.out.println("skeleton is not null");
                 return proxy.getClass().equals(obj.getClass())
                         && equals(objHandler);
             }
-            System.out.println("skeleton is null");
+//            System.out.println("skeleton is null");
             return proxyHandler.equals(objHandler);
             //return proxyHandler.hashCode() == objHandler.hashCode();
 
@@ -115,15 +108,24 @@ public class MyInvocationHandler<T> extends Stub implements InvocationHandler {
         Class[] argTypes = method.getParameterTypes();
         argNum = argTypes.length;
 
-        Serializable[] request = new Serializable[argNum + 1];
+        Serializable[] request = new Serializable[argNum + 2];
         int pos = 0;
         String methodName = method.getName();
         request[pos++] = methodName;
+        request[pos++] = method.getParameterTypes();
 
         try{
             for(int i=0;i<argNum;i++){
-                Serializable t = (Serializable) args[i];
-                request[pos++] = t;
+                try{
+                    Serializable t = (Serializable) args[i];
+                    new ObjectOutputStream(new ByteArrayOutputStream()).writeObject(t);
+                    request[pos++] = t;
+                } catch (IOException e) {
+//                    e.printStackTrace();
+                    request[pos++] = null;
+                }
+
+
             }
         }catch (ClassCastException e){
             throw new NotSerializableException("Argument(s) Not Serializable");
@@ -151,6 +153,9 @@ public class MyInvocationHandler<T> extends Stub implements InvocationHandler {
             oos.writeObject(request);
             oos.flush();
         }catch (Exception e){
+            if(method.getName().equals("equals")) {
+                e.printStackTrace();
+            }
             throw new RMIException("Remote call fails. Throws " + e.getClass().getName());
         }
 
@@ -205,22 +210,11 @@ public class MyInvocationHandler<T> extends Stub implements InvocationHandler {
 
     @Override
     public int hashCode() {
-//        System.out.println();
-//        System.out.println("Stub.hashCode()");
-//        if(skeleton == null) {
-//            return c.hashCode() + hostname.hashCode() + port;
-//        }
-//        System.out.println();
-//        System.err.println(skeleton.getClass());
         return c.hashCode() + hostname.hashCode() + port;
     }
 
     @Override
     public boolean equals(Object obj) {
-        System.out.println();
-        System.out.println("Stub.equals()");
-        System.out.println(this.c);
-        System.out.println(((MyInvocationHandler) obj).c);
         if(this == null && obj == null) {
             return true;
         }
