@@ -24,12 +24,14 @@ public class ClientHandler<T> implements Runnable {
         this.c = c;
     }
 
-    public Method getMethod(String methodName){
-        Method[] methods = c.getMethods();
-        for(Method m : methods){
-            if(m.getName().equals(methodName))  return m;
+    public Method getMethod(String methodName, Class<?>[] cArg){
+        try {
+            Method method = c.getMethod(methodName, cArg);
+            return method;
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+            return null;
         }
-        return null;
     }
 
     private void throwException(ObjectOutputStream oos, Throwable e) throws IOException {
@@ -47,13 +49,16 @@ public class ClientHandler<T> implements Runnable {
             try {
                 Serializable[] request = (Serializable[]) ois.readObject();
                 String methodName = (String) request[0];
-                Method m = getMethod(methodName);
+                Object types = request[1];
+                Class<?>[] cArg = (Class<?>[])(types);
+                Method m = getMethod(methodName, cArg);
+
 
                 if(m == null){
                     throwException(oos, new RMIException("Method not found"));
                 }else{
                     int argNum = m.getParameterTypes().length;
-                    Object[] params = Arrays.copyOfRange(request, 1, argNum + 1);
+                    Object[] params = Arrays.copyOfRange(request, 2, argNum + 2);
                     m.setAccessible(true);
                     Object result = m.invoke(serverInterface, params);
 
