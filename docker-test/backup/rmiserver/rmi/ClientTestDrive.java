@@ -26,8 +26,8 @@ public class ClientTestDrive {
         InetSocketAddress address = new InetSocketAddress("127.0.0.1", 8081);
         TestInterface testInterface = Stub.create(TestInterface.class, address);
 
-        boolean t = testInterface.equals(testInterface, 12);
-        System.out.println(t);
+        String ret = testInterface.sayHello(123, new StringBuffer("12345"));
+        System.out.println(ret);
     }
 
     private class ConnectionCheckThread implements Runnable{

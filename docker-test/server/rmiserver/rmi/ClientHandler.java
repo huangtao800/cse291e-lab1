@@ -3,7 +3,6 @@ package rmi;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Arrays;
 
@@ -15,59 +14,71 @@ import java.util.Arrays;
 public class ClientHandler<T> implements Runnable {
     private T serverInterface;
     private Socket clientSocket;
+    private Skeleton<T> skeleton;
+    private Class<T> c;
 
-    public ClientHandler(T server, Socket clientSocket){
+    public ClientHandler(T server, Socket clientSocket, Skeleton<T> skeleton, Class<T> c){
         this.serverInterface = server;
         this.clientSocket = clientSocket;
+        this.skeleton = skeleton;
+        this.c = c;
     }
 
-    public Method getMethod(String methodName){
-        Method[] methods = serverInterface.getClass().getMethods();
-        for(Method m : methods){
-            if(m.getName().equals(methodName))  return m;
+    public Method getMethod(String methodName, Class<?>[] cArg){
+        try {
+            Method method = c.getMethod(methodName, cArg);
+            return method;
+        } catch (NoSuchMethodException e) {
+//            e.printStackTrace();
+            return null;
         }
-        return null;
     }
 
-    private void methodNotFound(String methodName){
-        System.out.println(methodName + " not found!");
+    private void throwException(ObjectOutputStream oos, Throwable e) throws IOException {
+        Object[] res = new Object[2];
+        res[0] = "Throw error";
+        res[1] = e;
+        oos.writeObject(res);
     }
 
     public void run(){
         try {
             ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream());
-
             ObjectInputStream ois = new ObjectInputStream(clientSocket.getInputStream());
+
             try {
-//                System.out.println("Request received");
                 Serializable[] request = (Serializable[]) ois.readObject();
                 String methodName = (String) request[0];
-                Method m = getMethod(methodName);
+                Object types = request[1];
+                Class<?>[] cArg = (Class<?>[])(types);
+                Method m = getMethod(methodName, cArg);
+
+
                 if(m == null){
-                    methodNotFound(methodName);
-                }
-                int argNum = m.getParameterTypes().length;
-                Object[] params = Arrays.copyOfRange(request, 1, argNum + 1);
-
-                Object result = m.invoke(serverInterface, params);
-
-                Class returnType = m.getReturnType();
-                if(returnType != void.class){
-                    oos.writeObject(result);
+                    throwException(oos, new RMIException("Method not found"));
                 }else{
-                    oos.writeObject("Complete");
+                    int argNum = m.getParameterTypes().length;
+                    Object[] params = Arrays.copyOfRange(request, 2, argNum + 2);
+                    m.setAccessible(true);
+                    Object result = m.invoke(serverInterface, params);
+
+                    Class returnType = m.getReturnType();
+                    if(returnType != void.class){
+                        oos.writeObject(result);
+                    }else{
+                        oos.writeObject("Complete");
+                    }
                 }
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
+
+            } catch (ClassNotFoundException | IllegalAccessException e) {
+                throw e;
             } catch (InvocationTargetException e) {
-                // reply checked exceptions
-                oos.writeObject(e.getTargetException());
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
+                throwException(oos, e.getTargetException());
             }
             clientSocket.close();
-        } catch (IOException e) {
-            System.out.println("Getting Input/Output stream error");
+        } catch (Exception e) {
+            RMIException exception = new RMIException(e.getMessage());
+            skeleton.service_error(exception);
         }
 
     }

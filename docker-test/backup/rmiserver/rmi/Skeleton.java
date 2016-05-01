@@ -59,8 +59,6 @@ public class Skeleton<T>
         if(c == null || server == null) {
             throw new NullPointerException();
         }
-        if(!c.isInterface())    throw new Error("c does not represent a remote interface");
-
         Method[] methods = c.getMethods();
         String noRmiMethod = checkRMIException(methods);
         if(!noRmiMethod.equals("")){
@@ -95,8 +93,6 @@ public class Skeleton<T>
         if(c == null || server == null) {
             throw new NullPointerException();
         }
-        if(!c.isInterface())    throw new Error("c does not represent a remote interface");
-
         Method[] methods = c.getMethods();
         String noRmiMethod = checkRMIException(methods);
         if(!noRmiMethod.equals("")){
@@ -187,14 +183,13 @@ public class Skeleton<T>
             }
             serverSocket = new ServerSocket(iAddress.getPort(), 50, iAddress.getAddress());
 
-            runnable = new Listening<T>(server, serverSocket, this, this.c);
+            runnable = new Listening<T>(server, serverSocket);
             listenThread = new Thread(runnable);
             listenThread.start();
 
         } catch (IOException e) {
-            RMIException exception = new RMIException("Cannot create Socket");
-//            this.service_error(exception);
-            throw exception;
+            e.printStackTrace();
+            throw new RMIException("Cannot create Socket");
         }
         //throw new UnsupportedOperationException("not implemented");
     }
@@ -239,9 +234,5 @@ public class Skeleton<T>
             break;
         }
         return ret;
-    }
-
-    public Class<T> getTClass(){
-        return this.c;
     }
 }
